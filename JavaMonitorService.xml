@@ -1,0 +1,19 @@
+<service>
+    <id>JavaMonitorService</id>
+    <name>Java Monitor Service</name>
+    <description>Monitors USB, system events, and time changes</description>
+    <executable>%BASE%\monitor.exe</executable>
+<!--    <executable>java</executable>-->
+<!--    <arguments>-jar "%BASE%\monitor.jar"</arguments>-->
+
+    <workingdirectory>%BASE%</workingdirectory>
+
+    <logpath>%BASE%\logs</logpath>
+    <log mode="roll-by-size">
+        <sizeThreshold>10240</sizeThreshold>
+        <keepFiles>5</keepFiles>
+    </log>
+
+    <onfailure action="restart" delay="5 sec"/>
+</service>
+<!--<logmode>rotate</logmode>-->
