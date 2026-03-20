@@ -10,7 +10,7 @@ public class Constants {
 
     public static final String DATE_FORMAT = "dd.MM.yyyy HH:mm:ss";
 
-    public static final String IDENTIFIER_PROGRAM = "Windows_Event. ";
+    public static final String IDENTIFIER_PROGRAM = "Windows_Events. ";
     public static final String IDENTIFIER_PC = " Host: %s  IP: %s  |  ";
 
     public static final String START_SERVICE = "ПК ввімкнено: ";

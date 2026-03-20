@@ -1,8 +1,8 @@
 <service>
-    <id>JavaMonitorService</id>
-    <name>Java Monitor Service</name>
+    <id>WindowsEventsService</id>
+    <name>Windows Events Service</name>
     <description>Monitors USB, system events, and time changes</description>
-    <executable>%BASE%\monitor.exe</executable>
+    <executable>%BASE%\WindowsEvents.exe</executable>
 <!--    <executable>java</executable>-->
 <!--    <arguments>-jar "%BASE%\monitor.jar"</arguments>-->
 
