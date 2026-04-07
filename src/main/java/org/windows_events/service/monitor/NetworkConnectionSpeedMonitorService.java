@@ -30,12 +30,10 @@ public class NetworkConnectionSpeedMonitorService {
      * и возвращает список адаптеров, у которых скорость <= 100 Мбит/с.
      */
     public void findAdaptersWithLowSpeed(String hostNTP) throws Exception {
-//        List<AdapterSpeedInfo> result = new ArrayList<>();
         NTPTimeService ntpTimeService = new NTPTimeService(hostNTP);
 
         for (AdapterSpeedInfo adapter : getAdapters()) {
             if (adapter.getSpeedMbps().isPresent() && adapter.getSpeedMbps().get() <= THRESHOLD_MBPS) {
-//                result.add(adapter);
                 durableLogger.log(IDENTIFIER_PROGRAM +
                         String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                                 , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
@@ -43,8 +41,6 @@ public class NetworkConnectionSpeedMonitorService {
                         + DateFormatter.dateConvert(ntpTimeService.getNTPTime()));
             }
         }
-
-//        return result;
     }
 
     /**

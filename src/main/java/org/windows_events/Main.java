@@ -8,6 +8,7 @@ import org.windows_events.file.ConfigurationFile;
 import org.windows_events.file.TimeShutdownFile;
 import org.windows_events.logger.DurableSeqLogger;
 import org.windows_events.scheduler.USBMonitorScheduler;
+import org.windows_events.service.monitor.WinTimeConversionSettingsMonitorService;
 
 import java.io.IOException;
 import java.util.Map;
@@ -27,9 +28,6 @@ public class Main {
                         mapSeq.get(Constants.KEY),
                         "seq-buffer.log"
                 );
-
-
-        //---------------------------------------
 
         FirstRunController controller = new FirstRunController(durableLogger);
         controller.loggingStartupAndShutdown(hostNtp);

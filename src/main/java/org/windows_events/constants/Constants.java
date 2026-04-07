@@ -36,10 +36,9 @@ public class Constants {
     public static final String ERROR_EXIT_CODE = "Помилка. Перевірте, чи надано права доступу. Код виходу: ";
     public static final String ERROR_NTP_HOST = "NTP-host недоступний або зчитаний з помилкою.";
 
-    public static final String AUTOSTART_SERVICE = "Службі %s встановлено автозапуск. ";
+    public static final String AUTOSTART_SERVICE = "Службі %s ввімкнено автозапуск. ";
     public static final String RUN_SERVICE = "Службу %s запущено. ";
-    public static final String SET_AUTOUPDATE_TIME = "Встановлено автоматичне оновлення часу. ";
-    public static final String SET_DAYLIGHT_SAVE_TIME = "Встановлено автоматичне переведення на літній час. ";
-
+    public static final String SET_AUTOUPDATE_TIME = "Ввімкнено автоматичне оновлення часу. ";
+    public static final String SET_DAYLIGHT_SAVE_TIME = "Ввімкнено автоматичне переведення на літній час. ";
     public static final String LOW_NETWORK_SPEED = "Швидкість передачі даних у %s рівна %s. ";
 }

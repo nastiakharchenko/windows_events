@@ -36,7 +36,6 @@ public class ConfigurationFile {
         try {
             Wini ini = new Wini(new File(Constants.FILE_PATH_CONFIG));
             map.put(Constants.KEYBOARD_HOOK_SERVICE, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.KEYBOARD_HOOK_SERVICE)));
-            map.put(Constants.W32_TIME_SERVICE, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.W32_TIME_SERVICE)));
             map.put(Constants.CHECK_AUTO_UPDATE_TIME, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.CHECK_AUTO_UPDATE_TIME)));
             map.put(Constants.CHECK_DAYLIGHT_SAVE_TIME, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.CHECK_DAYLIGHT_SAVE_TIME)));
             map.put(Constants.CHECK_NUMLOCK, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.CHECK_NUMLOCK)));

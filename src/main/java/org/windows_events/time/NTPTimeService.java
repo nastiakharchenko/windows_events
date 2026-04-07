@@ -50,19 +50,4 @@ public class NTPTimeService {
 
         throw new Exception("Неочікувана помилка");
     }
-
-//    public Date getNTPTime() throws Exception {
-//        NTPUDPClient client = new NTPUDPClient();
-//        client.setDefaultTimeout(5000);     //если сервер не отвечает или сеть медленная
-//        client.open();
-//        InetAddress address = InetAddress.getByName(ntpHost);
-//        TimeInfo info = client.getTime(address);
-//        info.computeDetails();
-//
-//        long returnTime = info.getMessage().getTransmitTimeStamp().getTime();
-//        Date time = new Date(returnTime);
-//
-//        client.close();
-//        return time;
-//    }
 }
