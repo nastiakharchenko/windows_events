@@ -1,11 +1,12 @@
 package org.windows_events.controller;
 
-import org.windows_events.controller.monitor.SystemEventMonitor;
-import org.windows_events.controller.monitor.USBMonitor;
+import org.windows_events.service.monitor.SystemEventMonitorService;
+import org.windows_events.service.monitor.USBMonitorService;
+import org.windows_events.service.monitor.UserMonitorService;
 import org.windows_events.file.InitializeDataFile;
 import org.windows_events.file.TimeShutdownFile;
 import org.windows_events.logger.DurableSeqLogger;
-import org.windows_events.service.DataPC;
+import org.windows_events.service.monitor.DataPCMonitorService;
 import org.windows_events.service.DateFormatter;
 import org.windows_events.time.NTPTimeService;
 
@@ -24,8 +25,8 @@ public class FirstRunController {
         InitializeDataFile initializeDataFile = new InitializeDataFile();
         if(!initializeDataFile.isFile()){
             Set<String> currentDevices = new HashSet<>();
-            USBMonitor usbMonitor = new USBMonitor(durableLogger);
-            usbMonitor.findUsbDevice(currentDevices);
+            USBMonitorService usbMonitorService = new USBMonitorService();
+            usbMonitorService.findUsbDevice(currentDevices);
             initializeDataFile.writeToFile(currentDevices);
             return currentDevices;
         } else{
@@ -34,13 +35,15 @@ public class FirstRunController {
     }
 
     public void loggingStartupAndShutdown(String hostNtp) throws Exception {
+//        UserMonitorService userMonitorService = new UserMonitorService();
+        String activeUser = UserMonitorService.getActiveUser();
+
         NTPTimeService ntpTimeService = new NTPTimeService(hostNtp);
         Date dateNow = ntpTimeService.getNTPTime();
 
-        SystemEventMonitor systemEventMonitor = new SystemEventMonitor();
-        HashMap<Long, String> datePC = systemEventMonitor.lastTimeShutdown();
+        SystemEventMonitorService systemEventMonitorService = new SystemEventMonitorService();
+        HashMap<Long, String> datePC = systemEventMonitorService.lastTimeShutdown();
         Iterator<HashMap.Entry<Long, String>> iterator = datePC.entrySet().iterator();
-//        long dateStartupPCL = iterator.next().getKey();
         long dateShutdownPCL = iterator.next().getKey();
         String textShutdown = datePC.get(dateShutdownPCL);
 
@@ -49,23 +52,17 @@ public class FirstRunController {
 
         if(dateFile == 0L || dateFile <= dateShutdownPCL){
             durableLogger.log(IDENTIFIER_PROGRAM +
-                    String.format(IDENTIFIER_PC, DataPC.getHostName(), DataPC.getIpAddress())
+                    String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName(), DataPCMonitorService.getIpAddress(), activeUser)
                     + STOP_SERVICE + DateFormatter.dateConvertString(dateShutdownPCL) + textShutdown);
         } else {
             durableLogger.log(IDENTIFIER_PROGRAM +
-                    String.format(IDENTIFIER_PC, DataPC.getHostName(), DataPC.getIpAddress())
+                    String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName(), DataPCMonitorService.getIpAddress(), activeUser)
                     + STOP_SERVICE + DateFormatter.dateConvertString(dateFile));
         }
 
         durableLogger.log(IDENTIFIER_PROGRAM +
-                String.format(IDENTIFIER_PC, DataPC.getHostName(), DataPC.getIpAddress())
+                String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName(), DataPCMonitorService.getIpAddress(), activeUser)
                 + START_SERVICE + DateFormatter.dateConvert(dateNow)
         );
-
-//        if(dateStartupPCL != 0 && dateNow.getTime() <= dateStartupPCL){
-//            durableLogger.log(START_SERVICE + DateFormatter.dateConvertString(dateStartupPCL));
-//        } else{
-//            durableLogger.log(START_SERVICE + DateFormatter.dateConvert(dateNow));
-//        }
     }
 }

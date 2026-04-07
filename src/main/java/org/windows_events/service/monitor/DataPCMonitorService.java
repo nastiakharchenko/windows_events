@@ -1,4 +1,4 @@
-package org.windows_events.service;
+package org.windows_events.service.monitor;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -6,7 +6,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
 
-public class DataPC {
+public class DataPCMonitorService {
 
     public static String getHostName() {
         try {

@@ -1,12 +1,13 @@
 package org.windows_events;
 
 import org.windows_events.constants.Constants;
+import org.windows_events.controller.CheckServicesNeedScheduler;
 import org.windows_events.controller.FirstRunController;
-import org.windows_events.controller.monitor.TimeMonitor;
+import org.windows_events.scheduler.TimeMonitorScheduler;
 import org.windows_events.file.ConfigurationFile;
 import org.windows_events.file.TimeShutdownFile;
 import org.windows_events.logger.DurableSeqLogger;
-import org.windows_events.controller.monitor.USBMonitor;
+import org.windows_events.scheduler.USBMonitorScheduler;
 
 import java.io.IOException;
 import java.util.Map;
@@ -27,12 +28,24 @@ public class Main {
                         "seq-buffer.log"
                 );
 
+
+        //---------------------------------------
+
         FirstRunController controller = new FirstRunController(durableLogger);
         controller.loggingStartupAndShutdown(hostNtp);
 
         Set<String> currentUsbDevice = controller.firstRunService();
-        USBMonitor monitor = new USBMonitor(durableLogger);
+        USBMonitorScheduler monitor = new USBMonitorScheduler(durableLogger);
         monitor.setPreviousDevices(currentUsbDevice);
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        executor.submit(monitor);
+
+        TimeMonitorScheduler timeMonitorScheduler = new TimeMonitorScheduler(durableLogger);
+        timeMonitorScheduler.run(hostNtp);
+
+        CheckServicesNeedScheduler checkServicesNeedScheduler = new CheckServicesNeedScheduler(durableLogger, hostNtp);
+        checkServicesNeedScheduler.run();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             TimeShutdownFile timeShutdownFile = new TimeShutdownFile();
@@ -42,11 +55,5 @@ public class Main {
                 throw new RuntimeException(e);
             }
         }));
-
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        executor.submit(monitor);
-
-        TimeMonitor timeMonitor = new TimeMonitor(durableLogger);
-        timeMonitor.start(hostNtp);
     }
 }
