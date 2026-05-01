@@ -37,8 +37,8 @@ public class NetworkConnectionSpeedMonitorService {
                 durableLogger.log(IDENTIFIER_PROGRAM +
                         String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                                 , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
-                        + String.format(LOW_NETWORK_SPEED, adapter.name, adapter.rawLinkSpeed)
-                        + DateFormatter.dateConvert(ntpTimeService.getNTPTime()));
+                        + DateFormatter.dateConvert(ntpTimeService.getNTPTime())
+                        + String.format(LOW_NETWORK_SPEED, adapter.name, adapter.rawLinkSpeed));
             }
         }
     }

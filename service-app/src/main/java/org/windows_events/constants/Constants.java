@@ -1,7 +1,7 @@
 package org.windows_events.constants;
 
 public class Constants {
-    public static final int DELAY = 2;
+    public static final int DELAY = 30;
 
     public static final String FILE_PATH_CONFIG = "data\\config.ini";
     public static final String SECTION_SEQ = "Seq";
@@ -40,5 +40,7 @@ public class Constants {
     public static final String RUN_SERVICE = "Службу %s запущено. ";
     public static final String SET_AUTOUPDATE_TIME = "Ввімкнено автоматичне оновлення часу. ";
     public static final String SET_DAYLIGHT_SAVE_TIME = "Ввімкнено автоматичне переведення на літній час. ";
-    public static final String LOW_NETWORK_SPEED = "Швидкість передачі даних у %s рівна %s. ";
+    public static final String LOW_NETWORK_SPEED = " Швидкість передачі даних у %s рівна %s. ";
+    public static final String NUMLOCK_ON = " NumLock ввімкнено. ";
+    public static final String NUMLOCK_OFF = " NumLock вимкнено. ";
 }
