@@ -4,6 +4,8 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
+import org.windows_events.numlock.NumLockEvent;
+import org.windows_events.numlock.NumLockJson;
 
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -44,7 +46,7 @@ public final class NumLockAgent {
         int GetLastError();
     }
 
-    public static void runAgent(String host, int port) {
+    public static void runNumLockAgent(String host, int port) {
         if (!acquireSingleInstance()) {
             return;
         }

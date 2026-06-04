@@ -1,10 +1,11 @@
-package org.windows_events.service;
+package org.windows_events.service.server;
 
 import lombok.extern.slf4j.Slf4j;
-import org.windows_events.NumLockEvent;
-import org.windows_events.NumLockJson;
+import org.windows_events.numlock.NumLockEvent;
+import org.windows_events.numlock.NumLockJson;
 
 import org.windows_events.logger.DurableSeqLogger;
+import org.windows_events.service.DateFormatter;
 import org.windows_events.service.monitor.DataPCMonitorService;
 import org.windows_events.service.monitor.UserMonitorService;
 import org.windows_events.time.NTPTimeService;
@@ -29,6 +30,7 @@ public final class NumLockEventServer implements Runnable {
     private volatile boolean running = true;
     private ServerSocket serverSocket;
     private final ExecutorService clientPool = Executors.newCachedThreadPool();
+    private volatile String lastState = null;
 
     public NumLockEventServer(DurableSeqLogger logger, int port, String hostNtp) {
         this.logger = logger;
@@ -84,15 +86,33 @@ public final class NumLockEventServer implements Runnable {
         }
     }
 
-    private void logNumLockEvent(NumLockEvent event) {
+    private synchronized void logNumLockEvent(NumLockEvent event) {
+        String current = event.getNumLockState();
+
+        if (current != null && current.equals(lastState)) {
+            return;
+        }
+
+        lastState = current;
+
         String message = buildSeqMessage(event);
 
         try {
-           logger.log(message);
+            logger.log(message);
         } catch (Exception e) {
             System.err.println(message);
         }
     }
+
+//    private void logNumLockEvent(NumLockEvent event) {
+//        String message = buildSeqMessage(event);
+//
+//        try {
+//           logger.log(message);
+//        } catch (Exception e) {
+//            System.err.println(message);
+//        }
+//    }
 
     private String buildSeqMessage(NumLockEvent event) {
         try{
@@ -105,11 +125,8 @@ public final class NumLockEventServer implements Runnable {
 
             if (event.getNumLockState().equals("ON")){
                 str.append(NUMLOCK_ON);
-//                        .append(safe(event.getNumLockState()));
             } else if(event.getNumLockState().equals("OFF")){
                 str.append(NUMLOCK_OFF);
-//                        .append(safe(event.getNumLockState()))
-//                        .append(NUMLOCK_ON);
             }
 
             return str.toString();
@@ -117,16 +134,6 @@ public final class NumLockEventServer implements Runnable {
             System.err.println(e.getMessage());
             return "";
         }
-//        return "NumLock event"
-//                + " | type=" + safe(event.getEventType())
-//                + " | user=" + safe(event.getUsername())
-//                + " | state=" + safe(event.getNumLockState())
-//                + " | host=" + safe(event.getHost())
-//                + " | process=" + safe(event.getProcessName())
-//                + " | pid=" + event.getPid()
-//                + " | window=" + safe(event.getWindowTitle())
-//                + " | timestamp=" + event.getTimestamp()
-//                + " | message=" + safe(event.getMessage());
     }
 
     private String safe(String value) {

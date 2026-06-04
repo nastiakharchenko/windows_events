@@ -1,4 +1,4 @@
-package org.windows_events;
+package org.windows_events.numlock;
 
 public enum NumLockEventType {AGENT_STARTED,
     NUMLOCK_STATE_CHANGED,

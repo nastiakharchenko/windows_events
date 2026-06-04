@@ -12,6 +12,7 @@
         <module>agent-app</module>
         <module>service-app</module>
         <module>shared</module>
+        <module>agent-audio-app</module>
     </modules>
 
     <properties>

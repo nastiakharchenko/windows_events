@@ -16,6 +16,7 @@ public class Constants {
     public static final String CHECK_DAYLIGHT_SAVE_TIME = "CheckDaylightSaveTime";
     public static final String CHECK_NUMLOCK = "CheckNumLock";
     public static final String ALERT_100_MBPS = "Alert100Mbps";
+    public static final String CHECK_SOUND_PROGRAM = "CheckSoundProgram";
 
     public static final String DATE_FORMAT = "dd.MM.yyyy HH:mm:ss";
 

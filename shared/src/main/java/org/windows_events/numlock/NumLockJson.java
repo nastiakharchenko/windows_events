@@ -1,4 +1,4 @@
-package org.windows_events;
+package org.windows_events.numlock;
 
 import java.util.HashMap;
 import java.util.Map;

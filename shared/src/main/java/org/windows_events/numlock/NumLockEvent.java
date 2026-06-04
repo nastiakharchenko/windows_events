@@ -1,4 +1,4 @@
-package org.windows_events;
+package org.windows_events.numlock;
 
 import lombok.Getter;
 import lombok.Setter;

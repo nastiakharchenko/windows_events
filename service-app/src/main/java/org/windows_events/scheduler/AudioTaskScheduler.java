@@ -1,7 +1,5 @@
 package org.windows_events.scheduler;
 
-import org.windows_events.logger.DurableSeqLogger;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -10,31 +8,30 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class NumLockTaskScheduler {
+public final class AudioTaskScheduler {
 
-    private static final String TASK_NAME = "WindowsEvents_NumLockAgent";
-    private static final String AGENT_EXE_NAME = "WindowsEventsNumLockAgent.exe";
+    private static final String TASK_NAME = "WindowsEvents_AudioAgent";
+    private static final String AGENT_EXE_NAME = "WindowsEventsAudioAgent.exe";
 
-    private NumLockTaskScheduler() {
+    private AudioTaskScheduler() {
     }
 
-    public static void recreateScheduledTask(DurableSeqLogger logger, String username) {
+    public static void recreateScheduledTask(String username) {
         try {
             validateUsername(username);
 
             Path agentExe = resolveAgentExePath();
             validateAgentExe(agentExe);
 
-            deleteTaskIfExists(logger);
-            createTask(logger, username, agentExe);
-
+            deleteTaskIfExists();
+            createTask(username, agentExe);
 
         } catch (Exception e) {
-            System.err.println("Failed to recreate scheduled task: " + TASK_NAME + e);
+            System.err.println("Failed to recreate scheduled task: " + TASK_NAME + " " + e);
         }
     }
 
-    public static void ensureScheduledTaskExists(DurableSeqLogger logger, String username) {
+    public static void ensureScheduledTaskExists(String username) {
         try {
             validateUsername(username);
 
@@ -45,15 +42,14 @@ public final class NumLockTaskScheduler {
                 return;
             }
 
-            createTask(logger, username, agentExe);
-
+            createTask(username, agentExe);
 
         } catch (Exception e) {
-            System.err.println("Failed to create scheduled task: " + TASK_NAME + e);
+            System.err.println("Failed to create scheduled task: " + TASK_NAME + " " + e);
         }
     }
 
-    public static void deleteTaskIfExists(DurableSeqLogger logger) {
+    public static void deleteTaskIfExists() {
         try {
             if (!taskExists()) {
                 return;
@@ -75,12 +71,36 @@ public final class NumLockTaskScheduler {
             }
 
         } catch (Exception e) {
-            System.err.println("Failed to delete scheduled task: " + TASK_NAME + e);
+            System.err.println("Failed to delete scheduled task: " + TASK_NAME + " " + e);
         }
     }
 
-    private static void createTask(DurableSeqLogger logger, String username, Path agentExe) throws Exception {
+    public static void runTaskNow() {
+        try {
+            List<String> command = new ArrayList<>();
+            command.add(getSchtasksPath());
+            command.add("/Run");
+            command.add("/TN");
+            command.add(TASK_NAME);
+
+            ProcessResult result = runCommand(command);
+
+            if (result.exitCode != 0) {
+                throw new IllegalStateException(
+                        "schtasks run failed. exitCode=" + result.exitCode + ", output=" + result.output
+                );
+            }
+
+        } catch (Exception e) {
+            System.err.println("Failed to run scheduled task: " + TASK_NAME + " " + e);
+        }
+    }
+
+    private static void createTask(String username, Path agentExe) throws Exception {
 //        String taskCommand = "\"" + agentExe.toString() + "\"";
+
+//        String taskCommand =
+//                "cmd.exe /c \"cd /d \"" + agentExe.getParent() + "\" && \"" + agentExe + "\"\"";
 
         String taskCommand = agentExe.toAbsolutePath().toString();
 
@@ -91,6 +111,7 @@ public final class NumLockTaskScheduler {
         command.add("/SC");
         command.add("ONLOGON");
 //        command.add("/RL");
+//        command.add("LIMITED");
 //        command.add("HIGHEST");
         command.add("/TN");
         command.add(TASK_NAME);
@@ -134,11 +155,11 @@ public final class NumLockTaskScheduler {
 
     private static void validateAgentExe(Path agentExe) {
         if (!Files.exists(agentExe)) {
-            throw new IllegalStateException("Agent exe not found: " + agentExe);
+            throw new IllegalStateException("Audio agent exe not found: " + agentExe);
         }
 
         if (!Files.isRegularFile(agentExe)) {
-            throw new IllegalStateException("Agent exe is not a file: " + agentExe);
+            throw new IllegalStateException("Audio agent exe is not a file: " + agentExe);
         }
     }
 
@@ -148,27 +169,6 @@ public final class NumLockTaskScheduler {
             systemRoot = "C:\\Windows";
         }
         return systemRoot + "\\System32\\schtasks.exe";
-    }
-
-    public static void runTaskNow(DurableSeqLogger logger) {
-        try {
-            List<String> command = new ArrayList<>();
-            command.add(getSchtasksPath());
-            command.add("/Run");
-            command.add("/TN");
-            command.add(TASK_NAME);
-
-            ProcessResult result = runCommand(command);
-
-            if (result.exitCode != 0) {
-                throw new IllegalStateException(
-                        "schtasks run failed. exitCode=" + result.exitCode + ", output=" + result.output
-                );
-            }
-
-        } catch (Exception e) {
-            System.err.println("Failed to run scheduled task: " + TASK_NAME + e);
-        }
     }
 
     private static ProcessResult runCommand(List<String> command) throws Exception {

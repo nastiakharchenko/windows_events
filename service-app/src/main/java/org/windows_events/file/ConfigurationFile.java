@@ -40,6 +40,7 @@ public class ConfigurationFile {
             map.put(Constants.CHECK_DAYLIGHT_SAVE_TIME, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.CHECK_DAYLIGHT_SAVE_TIME)));
             map.put(Constants.CHECK_NUMLOCK, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.CHECK_NUMLOCK)));
             map.put(Constants.ALERT_100_MBPS, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.ALERT_100_MBPS)));
+            map.put(Constants.CHECK_SOUND_PROGRAM, Boolean.valueOf(ini.get(Constants.SECTION_SERVICES, Constants.CHECK_SOUND_PROGRAM)));
         } catch (Exception e) {
             System.err.println(Class.class.getSimpleName() + ": " + e.getMessage());
         }
