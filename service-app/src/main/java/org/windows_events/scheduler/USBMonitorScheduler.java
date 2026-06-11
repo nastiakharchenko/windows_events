@@ -10,6 +10,8 @@ import org.windows_events.service.monitor.USBMonitorService;
 import org.windows_events.service.monitor.UserMonitorService;
 import org.windows_events.time.NTPTimeService;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,6 +39,9 @@ public class USBMonitorScheduler implements Runnable {
             previousDevices = new HashSet<>();
         }
 
+        boolean access = true;
+        Date date = null;
+
         while (true) {
             try {
                 Set<String> currentDevices = new HashSet<>();
@@ -45,23 +50,61 @@ public class USBMonitorScheduler implements Runnable {
 
                 for (String id : currentDevices) {
                     if (!previousDevices.contains(id)) {
-                        durableLogger.log(IDENTIFIER_PROGRAM +
+
+                        date = ntpTimeService.getNTPTime();
+                        if(date == null){
+                            date = Date.from(Instant.now());
+                            access = false;
+                        } else{
+                            access = true;
+                        }
+                        StringBuilder str = new StringBuilder(IDENTIFIER_PROGRAM +
                                 String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                                         , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
                                 + Constants.USB_CONNECTED + "\t"
-                                + DateFormatter.dateConvert(ntpTimeService.getNTPTime()) + "\t"
-                                + id);
+                                + DateFormatter.dateConvert(date));
+                        if(!access){
+                            str.append(TIME_PC);
+                        }
+                        str.append("\t").append(id);
+                        durableLogger.log(str.toString());
+
+
+//                        durableLogger.log(IDENTIFIER_PROGRAM +
+//                                String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
+//                                        , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
+//                                + Constants.USB_CONNECTED + "\t"
+//                                + DateFormatter.dateConvert(ntpTimeService.getNTPTime()) + "\t"
+//                                + id);
                     }
                 }
 
                 for (String id : previousDevices) {
                     if (!currentDevices.contains(id)) {
-                        durableLogger.log(IDENTIFIER_PROGRAM +
+                        date = ntpTimeService.getNTPTime();
+                        if(date == null){
+                            date = Date.from(Instant.now());
+                            access = false;
+                        } else{
+                            access = true;
+                        }
+                        StringBuilder str = new StringBuilder(IDENTIFIER_PROGRAM +
                                 String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                                         , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
                                 + Constants.USB_DISCONNECTED + "\t"
-                                + DateFormatter.dateConvert(ntpTimeService.getNTPTime()) + "\t"
-                                + id);
+                                + DateFormatter.dateConvert(date));
+                        if(!access){
+                            str.append(TIME_PC);
+                        }
+                        str.append("\t").append(id);
+                        durableLogger.log(str.toString());
+
+//                        durableLogger.log(IDENTIFIER_PROGRAM +
+//                                String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
+//                                        , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
+//                                + Constants.USB_DISCONNECTED + "\t"
+//                                + DateFormatter.dateConvert(ntpTimeService.getNTPTime()) + "\t"
+//                                + id);
                     }
                 }
 

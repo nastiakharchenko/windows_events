@@ -16,6 +16,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -121,7 +123,18 @@ public final class NumLockEventServer implements Runnable {
                     .append(String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                             , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser()));
             NTPTimeService ntp = new NTPTimeService(hostNtp);
-            str.append(DateFormatter.dateConvert(ntp.getNTPTime()));
+
+            boolean access = true;
+            Date date = ntp.getNTPTime();
+            if(date == null){
+                date = Date.from(Instant.now());
+                access = false;
+            }
+            str.append(DateFormatter.dateConvert(date));
+            if(!access){
+                str.append(TIME_PC);
+            }
+//            str.append(DateFormatter.dateConvert(ntp.getNTPTime()));
 
             if (event.getNumLockState().equals("ON")){
                 str.append(NUMLOCK_ON);
@@ -134,9 +147,5 @@ public final class NumLockEventServer implements Runnable {
             System.err.println(e.getMessage());
             return "";
         }
-    }
-
-    private String safe(String value) {
-        return value == null ? "" : value;
     }
 }

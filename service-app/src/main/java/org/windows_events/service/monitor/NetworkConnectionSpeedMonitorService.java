@@ -8,10 +8,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,14 +29,32 @@ public class NetworkConnectionSpeedMonitorService {
      */
     public void findAdaptersWithLowSpeed(String hostNTP) throws Exception {
         NTPTimeService ntpTimeService = new NTPTimeService(hostNTP);
+        boolean access = true;
+
+        Date date = ntpTimeService.getNTPTime();
+        if(date == null){
+            date = Date.from(Instant.now());
+            access = false;
+        }
 
         for (AdapterSpeedInfo adapter : getAdapters()) {
             if (adapter.getSpeedMbps().isPresent() && adapter.getSpeedMbps().get() <= THRESHOLD_MBPS) {
-                durableLogger.log(IDENTIFIER_PROGRAM +
+//                durableLogger.log(IDENTIFIER_PROGRAM +
+//                        String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
+//                                , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
+//                        + DateFormatter.dateConvert(ntpTimeService.getNTPTime())
+//                        + String.format(LOW_NETWORK_SPEED, adapter.name, adapter.rawLinkSpeed));
+
+                StringBuilder stringBuilder = new StringBuilder(IDENTIFIER_PROGRAM +
                         String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                                 , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
-                        + DateFormatter.dateConvert(ntpTimeService.getNTPTime())
-                        + String.format(LOW_NETWORK_SPEED, adapter.name, adapter.rawLinkSpeed));
+                        + DateFormatter.dateConvert(date));
+                if (!access) {
+                    stringBuilder.append(TIME_PC);
+                }
+                stringBuilder.append(String.format(LOW_NETWORK_SPEED, adapter.name, adapter.rawLinkSpeed));
+
+                durableLogger.log(stringBuilder.toString());
             }
         }
     }

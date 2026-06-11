@@ -8,7 +8,9 @@ import org.windows_events.time.NTPTimeService;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.time.Instant;
 import java.util.Date;
+import java.util.SplittableRandom;
 
 import static org.windows_events.constants.Constants.*;
 
@@ -50,11 +52,26 @@ public class CheckStartServices {
     public void startService(String serviceName) throws Exception {
         if(executeCommand("sc start " + serviceName)){
             Date dateNow = ntpTimeService.getNTPTime();
-            durableLogger.log(IDENTIFIER_PROGRAM +
+            boolean access = true;
+            if(dateNow == null){
+                dateNow = Date.from(Instant.now());
+                access = false;
+            }
+            StringBuilder str = new StringBuilder(IDENTIFIER_PROGRAM +
                     String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                             , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
                     + String.format(RUN_SERVICE, serviceName)
                     + DateFormatter.dateConvert(dateNow));
+            if(!access){
+                str.append(TIME_PC);
+            }
+            durableLogger.log(str.toString());
+
+//            durableLogger.log(IDENTIFIER_PROGRAM +
+//                    String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
+//                            , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
+//                    + String.format(RUN_SERVICE, serviceName)
+//                    + DateFormatter.dateConvert(dateNow));
         }
     }
 
@@ -86,10 +103,25 @@ public class CheckStartServices {
     public void setServiceAutoStart(String serviceName) throws Exception {
         if(executeCommand("sc config " + serviceName + " start= auto")){
             Date dateNow = ntpTimeService.getNTPTime();
-            durableLogger.log(IDENTIFIER_PROGRAM +
+            boolean access = true;
+            if(dateNow == null){
+                dateNow = Date.from(Instant.now());
+                access = false;
+            }
+            StringBuilder str = new StringBuilder(IDENTIFIER_PROGRAM +
                     String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                             , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
                     + String.format(AUTOSTART_SERVICE, serviceName) + DateFormatter.dateConvert(dateNow));
+            if(!access){
+                str.append(TIME_PC);
+            }
+            durableLogger.log(str.toString());
+
+
+//            durableLogger.log(IDENTIFIER_PROGRAM +
+//                    String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
+//                            , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
+//                    + String.format(AUTOSTART_SERVICE, serviceName) + DateFormatter.dateConvert(dateNow));
         }
     }
 

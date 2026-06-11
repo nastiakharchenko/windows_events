@@ -15,11 +15,12 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.windows_events.constants.Constants.IDENTIFIER_PC;
-import static org.windows_events.constants.Constants.IDENTIFIER_PROGRAM;
+import static org.windows_events.constants.Constants.*;
 
 @Slf4j
 public final class AudioEventServer implements Runnable {
@@ -27,10 +28,8 @@ public final class AudioEventServer implements Runnable {
     private final DurableSeqLogger logger;
     private final int port;
     private final String hostNtp;
-
     private volatile boolean running = true;
     private ServerSocket serverSocket;
-
     private final ExecutorService clientPool = Executors.newCachedThreadPool();
 
     public AudioEventServer(DurableSeqLogger logger, int port, String hostNtp) {
@@ -112,7 +111,18 @@ public final class AudioEventServer implements Runnable {
                     ));
 
             NTPTimeService ntp = new NTPTimeService(hostNtp);
-            str.append(DateFormatter.dateConvert(ntp.getNTPTime()));
+            boolean access = true;
+            Date date = ntp.getNTPTime();
+            if(date == null){
+                date = Date.from(Instant.now());
+                access = false;
+            }
+            str.append(DateFormatter.dateConvert(date));
+            if(!access){
+                str.append(TIME_PC);
+            }
+
+//            str.append(DateFormatter.dateConvert(ntp.getNTPTime()));
 
             str.append(" Заборонено вимкнення звуку. ");
 

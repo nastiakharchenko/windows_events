@@ -29,10 +29,12 @@ public class TimeMonitorScheduler {
 
             long ntpTime = 0;
             try {
+                //TODO: что делать, если сервер недоступен?
                 ntpTime = ntpTimeService.getNTPTime().getTime();
             } catch (Exception e) {
                 System.err.println(Class.class.getSimpleName() + ": " + e.getMessage());
-                throw new RuntimeException(e);
+                return;
+                //throw new RuntimeException(e);
             }
             long systemTime = System.currentTimeMillis();
 

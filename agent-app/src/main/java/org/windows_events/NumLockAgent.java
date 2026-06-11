@@ -1,11 +1,18 @@
 package org.windows_events;
 
-import com.sun.jna.Native;
-import com.sun.jna.Pointer;
-import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.win32.StdCallLibrary;
 import org.windows_events.numlock.NumLockEvent;
 import org.windows_events.numlock.NumLockJson;
+
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.WinDef.LRESULT;
+import com.sun.jna.platform.win32.WinDef.WPARAM;
+import com.sun.jna.platform.win32.WinDef.LPARAM;
+import com.sun.jna.platform.win32.WinUser.HOOKPROC;
+import com.sun.jna.platform.win32.WinUser.LowLevelKeyboardProc;
+import com.sun.jna.platform.win32.WinUser.KBDLLHOOKSTRUCT;
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.win32.StdCallLibrary;
 
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -18,7 +25,6 @@ public final class NumLockAgent {
     private static final int VK_NUMLOCK = 0x90;
     private static final int KEYEVENTF_EXTENDEDKEY = 0x0001;
     private static final int KEYEVENTF_KEYUP = 0x0002;
-    private static final long CHECK_INTERVAL_MS = 300L;
     private static Pointer mutexHandle;
 
     private NumLockAgent() {
@@ -27,6 +33,13 @@ public final class NumLockAgent {
     public interface User32Ext extends StdCallLibrary {
         User32Ext INSTANCE = Native.load("user32", User32Ext.class);
 
+        // Функция для синхронизации ввода фонового потока с активным окном
+        boolean AttachThreadInput(int idAttach, int idAttachTo, boolean fAttach);
+        // Для чтения карты клавиатуры сессии
+        boolean GetKeyboardState(byte[] lpKeyState);
+
+//        short GetAsyncKeyState(int vKey);
+//
         short GetKeyState(int nVirtKey);
 
         void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
@@ -40,6 +53,9 @@ public final class NumLockAgent {
 
     public interface Kernel32Ext extends StdCallLibrary {
         Kernel32Ext INSTANCE = Native.load("kernel32", Kernel32Ext.class);
+
+        // Получение ID текущего Java-потока в Windows
+        int GetCurrentThreadId();
 
         Pointer CreateMutexA(Pointer lpMutexAttributes, boolean bInitialOwner, String lpName);
 
@@ -67,6 +83,15 @@ public final class NumLockAgent {
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                // Проверяем, активна ли сессия (есть ли хоть какое-то окно на экране)
+                // Если экран заблокирован или пользователь в фоне, GetForegroundWindow() вернет null
+                if (User32Ext.INSTANCE.GetForegroundWindow() == null) {
+                    // Пользователь сменил учетку или заблокировал экран.
+                    // Просто ждем и ничего не переключаем, чтобы не сбивать стейт.
+                    Thread.sleep(500L);
+                    continue;
+                }
+
                 boolean currentState = isNumLockOn();
 
                 if (currentState != previousState) {
@@ -99,7 +124,7 @@ public final class NumLockAgent {
                     previousState = afterToggle;
                 }
 
-                Thread.sleep(CHECK_INTERVAL_MS);
+                Thread.sleep(300L);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
@@ -127,7 +152,10 @@ public final class NumLockAgent {
     }
 
     private static boolean acquireSingleInstance() {
-        mutexHandle = Kernel32Ext.INSTANCE.CreateMutexA(null, false, "Global\\WindowsEventsNumLockAgent");
+//        mutexHandle = Kernel32Ext.INSTANCE.CreateMutexA(null, false, "Global\\WindowsEventsNumLockAgent_"
+//                + System.getProperty("user.name"));
+        mutexHandle = Kernel32Ext.INSTANCE.CreateMutexA(null, false
+                , "Local\\WindowsEventsNumLockAgent_" + System.getProperty("user.name"));
         int lastError = Kernel32Ext.INSTANCE.GetLastError();
         return lastError != 183;
     }
@@ -147,7 +175,44 @@ public final class NumLockAgent {
     }
 
     private static boolean isNumLockOn() {
-        return (User32Ext.INSTANCE.GetKeyState(VK_NUMLOCK) & 0x0001) != 0;
+        Pointer hwnd = User32Ext.INSTANCE.GetForegroundWindow();
+        if (hwnd == null) {
+            // Если экран заблокирован или окон нет, возвращаем последнее известное состояние
+            return (User32Ext.INSTANCE.GetKeyState(VK_NUMLOCK) & 0x0001) != 0;
+        }
+
+        // 1. Получаем ID потока, которому принадлежит активное окно
+        int activeThreadId = User32Ext.INSTANCE.GetWindowThreadProcessId(hwnd, null);
+        // 2. Получаем ID нашего собственного фонового потока Java
+        int myThreadId = Kernel32Ext.INSTANCE.GetCurrentThreadId();
+
+        boolean attached = false;
+        byte[] keyState = new byte[256];
+        boolean state = false;
+
+        try {
+            // Если активное окно не наше (а оно фоновое, так что точно не наше), подключаемся к нему
+            if (activeThreadId != myThreadId && activeThreadId != 0) {
+                attached = User32Ext.INSTANCE.AttachThreadInput(myThreadId, activeThreadId, true);
+            }
+
+            // 3. Теперь, когда потоки связаны, GetKeyboardState считывает РЕАЛЬНУЮ карту клавиш этого окна!
+            if (User32Ext.INSTANCE.GetKeyboardState(keyState)) {
+                state = (keyState[VK_NUMLOCK] & 0x01) != 0;
+            } else {
+                // Фолбэк на GetKeyState, если буфер не прочитался
+                state = (User32Ext.INSTANCE.GetKeyState(VK_NUMLOCK) & 0x0001) != 0;
+            }
+        } finally {
+            // 4. ОБЯЗАТЕЛЬНО отключаемся от чужого потока, чтобы не вызвать зависание интерфейса Windows
+            if (attached) {
+                User32Ext.INSTANCE.AttachThreadInput(myThreadId, activeThreadId, false);
+            }
+        }
+
+        return state;
+//        return (User32Ext.INSTANCE.GetKeyState(VK_NUMLOCK) & 0x0001) != 0;
+//        return (User32Ext.INSTANCE.GetAsyncKeyState(VK_NUMLOCK) & 0x0001) != 0;
     }
 
     private static void forceNumLockOn() {
@@ -196,6 +261,7 @@ public final class NumLockAgent {
 
             IntByReference pidRef = new IntByReference();
             User32Ext.INSTANCE.GetWindowThreadProcessId(hwnd, pidRef);
+
             return pidRef.getValue();
         } catch (Exception e) {
             return -1;

@@ -44,4 +44,6 @@ public class Constants {
     public static final String LOW_NETWORK_SPEED = " Швидкість передачі даних у %s рівна %s. ";
     public static final String NUMLOCK_ON = " NumLock ввімкнено. ";
     public static final String NUMLOCK_OFF = " NumLock вимкнено. ";
+
+    public static final String TIME_PC = " [час ПК] ";
 }

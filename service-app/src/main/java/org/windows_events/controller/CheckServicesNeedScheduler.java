@@ -12,6 +12,9 @@ import org.windows_events.service.monitor.WinTimeConversionSettingsMonitorServic
 import org.windows_events.service.monitor.services.KeyboardHookMonitorService;
 import org.windows_events.time.NTPTimeService;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,6 +54,15 @@ public class CheckServicesNeedScheduler {
     }
 
     private void check() throws Exception {//Map<String, Boolean> mapSeq) throws Exception {
+        NTPTimeService ntp = new NTPTimeService(hostNtp);
+        boolean access = true;
+
+        Date date = ntp.getNTPTime();
+        if(date == null){
+            date = Date.from(Instant.now());
+            access = false;
+        }
+
         if(mapSeq.get(KEYBOARD_HOOK_SERVICE)){
             KeyboardHookMonitorService keyboardHookMonitorService = new KeyboardHookMonitorService();
             keyboardHookMonitorService.check(durableLogger, hostNtp);
@@ -60,12 +72,22 @@ public class CheckServicesNeedScheduler {
             if( ! service.isAutoTimeAdjustmentEnabled()){
                 service.enableAutoTimeAdjustment(false, "time.windows.com,0x9");
                 if (service.statusRequest){
-                    NTPTimeService ntp = new NTPTimeService(hostNtp);
-                    durableLogger.log(IDENTIFIER_PROGRAM +
+//                    durableLogger.log(IDENTIFIER_PROGRAM +
+//                            String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
+//                                    , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
+//                            + SET_AUTOUPDATE_TIME
+//                            + DateFormatter.dateConvert(date));
+
+                    StringBuilder str = new StringBuilder(IDENTIFIER_PROGRAM +
                             String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                                     , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
                             + SET_AUTOUPDATE_TIME
-                            + DateFormatter.dateConvert(ntp.getNTPTime()));
+                            + DateFormatter.dateConvert(date));
+
+                    if(!access){
+                        str.append(TIME_PC);
+                    }
+                    durableLogger.log(str.toString());
                 }
             }
         }
@@ -74,12 +96,21 @@ public class CheckServicesNeedScheduler {
             if( ! service.isDaylightSavingEnabled()){
                 service.enableDaylightSaving();
                 if (service.statusRequest){
-                    NTPTimeService ntp = new NTPTimeService(hostNtp);
-                    durableLogger.log(IDENTIFIER_PROGRAM +
+//                    durableLogger.log(IDENTIFIER_PROGRAM +
+//                            String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
+//                                    , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
+//                            + SET_DAYLIGHT_SAVE_TIME
+//                            + DateFormatter.dateConvert(ntp.getNTPTime()));
+
+                    StringBuilder str = new StringBuilder(IDENTIFIER_PROGRAM +
                             String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName()
                                     , DataPCMonitorService.getIpAddress(), UserMonitorService.getActiveUser())
                             + SET_DAYLIGHT_SAVE_TIME
-                            + DateFormatter.dateConvert(ntp.getNTPTime()));
+                            + DateFormatter.dateConvert(date));
+                    if(!access){
+                        str.append(TIME_PC);
+                    }
+                    durableLogger.log(str.toString());
                 }
             }
         }

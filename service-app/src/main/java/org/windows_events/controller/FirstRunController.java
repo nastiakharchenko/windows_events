@@ -10,6 +10,7 @@ import org.windows_events.service.monitor.DataPCMonitorService;
 import org.windows_events.service.DateFormatter;
 import org.windows_events.time.NTPTimeService;
 
+import java.time.Instant;
 import java.util.*;
 
 import static org.windows_events.constants.Constants.*;
@@ -40,6 +41,12 @@ public class FirstRunController {
 
         NTPTimeService ntpTimeService = new NTPTimeService(hostNtp);
         Date dateNow = ntpTimeService.getNTPTime();
+        boolean access = true;
+
+        if(dateNow == null){
+            dateNow = Date.from(Instant.now());
+            access = false;
+        }
 
         SystemEventMonitorService systemEventMonitorService = new SystemEventMonitorService();
         HashMap<Long, String> datePC = systemEventMonitorService.lastTimeShutdown();
@@ -60,9 +67,12 @@ public class FirstRunController {
                     + STOP_SERVICE + DateFormatter.dateConvertString(dateFile));
         }
 
-        durableLogger.log(IDENTIFIER_PROGRAM +
+        StringBuilder str = new StringBuilder(IDENTIFIER_PROGRAM +
                 String.format(IDENTIFIER_PC, DataPCMonitorService.getHostName(), DataPCMonitorService.getIpAddress(), activeUser)
-                + START_SERVICE + DateFormatter.dateConvert(dateNow)
-        );
+                + START_SERVICE + DateFormatter.dateConvert(dateNow));
+        if(!access){
+            str.append(TIME_PC);
+        }
+        durableLogger.log(str.toString());
     }
 }

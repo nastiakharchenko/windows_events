@@ -38,8 +38,9 @@ public class NTPTimeService {
                 System.err.println("Спроба " + attempt + " не вдалась: " + e.getMessage());
 
                 if (attempt == maxAttempts) {
-                    throw new Exception("Не вдалося отримати час з NTP після "
-                            + maxAttempts + " спроб", e);
+                    return null;
+//                    throw new Exception("Не вдалося отримати час з NTP після "
+//                            + maxAttempts + " спроб", e);
                 }
 
                 Thread.sleep(delayMs);
@@ -48,6 +49,8 @@ public class NTPTimeService {
             }
         }
 
-        throw new Exception("Неочікувана помилка");
+        //throw new Exception("Неочікувана помилка");
+
+        return null;
     }
 }

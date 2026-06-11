@@ -50,6 +50,8 @@ public class Main {
 
         String hostNtp = ConfigurationFile.readTimeServerHost();
 
+        Thread.sleep(1500);
+
         //Логирование времени включения/выключения
         FirstRunController controller = new FirstRunController(durableLogger);
         controller.loggingStartupAndShutdown(hostNtp);
@@ -72,8 +74,13 @@ public class Main {
             NumLockEventServer numLockEventServer = new NumLockEventServer(durableLogger, 44555, hostNtp);
             ExecutorService executorNumLock = Executors.newFixedThreadPool(1);
             executorNumLock.submit(numLockEventServer);
-            NumLockTaskScheduler.recreateScheduledTask(durableLogger, UserMonitorService.getActiveUser());
-            NumLockTaskScheduler.runTaskNow(durableLogger);
+
+            Thread.sleep(1500);
+
+            NumLockTaskScheduler.ensureScheduledTaskExists(durableLogger, UserMonitorService.getActiveUser());
+
+//            NumLockTaskScheduler.recreateScheduledTask(durableLogger, UserMonitorService.getActiveUser());
+//            NumLockTaskScheduler.runTaskNow(durableLogger);
         }
 
         //Проверка необходимости контроля звука приложений и выполнение в случае успеха
@@ -81,6 +88,9 @@ public class Main {
             AudioEventServer audioEventServer = new AudioEventServer(durableLogger, 47632, hostNtp);
             ExecutorService executorAudio = Executors.newFixedThreadPool(3);
             executorAudio.submit(audioEventServer);
+
+            Thread.sleep(1500);
+
             AudioTaskScheduler.recreateScheduledTask(UserMonitorService.getActiveUser());
             AudioTaskScheduler.runTaskNow();
         }
