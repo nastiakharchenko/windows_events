@@ -42,9 +42,9 @@ public final class NumLockTaskScheduler {
             Path agentExe = resolveAgentExePath();
             validateAgentExe(agentExe);
 
-//            if (taskExists()) {
-//                return;
-//            }
+            if (taskExists()) {
+                return;
+            }
 
 //            createTask(logger, username, agentExe);
             createTask(logger, agentExe);
@@ -113,6 +113,7 @@ public final class NumLockTaskScheduler {
         }
 
         logger.log("Универсальный лончер агента успешно прописан в автозагрузку всех сессий.");
+    }
 
 //        String taskCommand = agentExe.toAbsolutePath().toString();
 //
@@ -169,7 +170,6 @@ public final class NumLockTaskScheduler {
 //            String errorOutput = new String(process.getErrorStream().readAllBytes(), "CP866");
 //            throw new IllegalStateException("Ошибка регистрации задачи: " + errorOutput);
 //        }
-    }
 
 //    private static void createTask(DurableSeqLogger logger, String username, Path agentExe) throws Exception {
 ////        String taskCommand = "\"" + agentExe.toString() + "\"";
